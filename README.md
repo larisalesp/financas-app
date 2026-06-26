@@ -9,12 +9,11 @@ Aplicação de finanças pessoais com backend em FastAPI e frontend em React.
 ![JWT](https://img.shields.io/badge/Auth-JWT-e8aaba?style=flat&logo=jsonwebtokens&logoColor=white)
 
 ## ‎❥ Sobre:
-Desenvolvi essa aplicação como projeto de portfólio para praticar o desenvolvimento 
-fullstack.
-O projeto vai além de um CRUD simples: inclui autenticação JWT, categorias 
-personalizadas, importação via CSV e relatórios históricos, refletindo um caso 
-de uso real do dia a dia.
-A motivação foi entender para onde o dinheiro vai e ter mais controle sobre as minhas finanças pessoais.
+Desenvolvi essa aplicação como projeto de portfólio para praticar o desenvolvimento fullstack.
+
+O projeto vai além de um CRUD simples: inclui autenticação JWT, categorias personalizadas, importação via CSV e relatórios históricos, refletindo um caso de uso real do dia a dia.
+
+A motivação veio de uma necessidade real: querer entender para onde o dinheiro vai e ter mais controle sobre as minhas finanças pessoais.
 
 ## ‎❥ Funcionalidades:
 
