@@ -1,28 +1,38 @@
-from fastapi import APIRouter, HTTPException, status
-from app.database import db
-from app.models import UserCreate, UserLogin
-from app.auth import hash_senha, verificar_senha, criar_token
+from passlib.context import CryptContext
+from jose import jwt
+from datetime import datetime, timedelta
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+import os
+from dotenv import load_dotenv
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+load_dotenv()
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
-async def register(user: UserCreate):
-    existe = await db["usuarios"].find_one({"email": user.email})
-    if existe:
-        raise HTTPException(status_code=400, detail="Email já cadastrado")
+SECRET_KEY = os.getenv("SECRET_KEY", "chave-secreta")
+ALGORITHM = "HS256"
+EXPIRACAO_MINUTOS = 30
 
-    novo_usuario = {
-        "nome": user.nome,
-        "email": user.email,
-        "senha": hash_senha(user.senha)
-    }
-    await db["usuarios"].insert_one(novo_usuario)
-    return {"mensagem": "Usuário criado com sucesso"}
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-@router.post("/login")
-async def login(user: UserLogin):
-    usuario = await db["usuarios"].find_one({"email": user.email})
-    if not usuario or not verificar_senha(user.senha, usuario["senha"]):
-        raise HTTPException(status_code=401, detail="Email ou senha incorretos")
-    token = criar_token({"sub": usuario["email"]})
-    return {"access_token": token, "token_type": "bearer"}
+def hash_senha(senha: str) -> str:
+    return pwd_context.hash(senha)
+
+def verificar_senha(senha: str, hash: str) -> bool:
+    return pwd_context.verify(senha, hash)
+
+def criar_token(dados: dict) -> str:
+    dados_copia = dados.copy()
+    expiracao = datetime.utcnow() + timedelta(minutes=EXPIRACAO_MINUTOS)
+    dados_copia.update({"exp": expiracao})
+    return jwt.encode(dados_copia, SECRET_KEY, algorithm=ALGORITHM)
+
+def verificar_token(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        if not email:
+            raise HTTPException(status_code=401, detail="Token inválido")
+        return {"email": email, "id": email}
+    except:
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
